@@ -108,7 +108,7 @@ function loadApp(uid){
   db.ref("users/"+uid).once("value").then(snap=>{
     const data=snap.val();
     let tag = uid===ADMIN_ID?" 🛡":"";
-    let idDisplay = uid===ADMIN_ID?"Staff App: Admin •Quản Trị Viên•":uid;
+    let idDisplay = uid===ADMIN_ID?"Staff App: Admin":uid;
 
     let html=`
     <h3>Hồ sơ</h3>
@@ -143,12 +143,20 @@ function logout(){
 
 function enterTeam(num){
   appSection.style.display="none";
-  teamSection.style.display="block";
+  teamSection.style.display= "block";
+
   teamSection.innerHTML=`
   <button class="back" onclick="back()">← Back</button>
   <h2>🇻🇳 Đội ${num}</h2>
   <img src="https://upload.wikimedia.org/wikipedia/commons/2/21/Flag_of_Vietnam.svg" width="120">
+
+  <div id="messages" style="margin-top:20px;"></div>
+
+  <input id="msgInput" placeholder="Nhập tin nhắn">
+  <button onclick="sendMsg(${num})">Gửi</button>
   `;
+
+  loadMessages(num);
 }
 
 function back(){
@@ -170,6 +178,35 @@ function kickUser(){
   if(uid===ADMIN_ID){alert("Không thể kick ADMIN");return;}
   db.ref("kicks/"+uid).set(true);
   alert("Đã Kick UID: "+uid);
+}
+  function loadMessages(num){
+  db.ref("teams/team"+num).on("value", snap=>{
+    let data = snap.val();
+    let html = "";
+
+    if(data){
+      for(let id in data){
+        html += `<p><b>${data[id].sender}:</b> ${data[id].message}</p>`;
+      }
+    }
+
+    document.getElementById("messages").innerHTML = html;
+  });
+}
+
+function sendMsg(num){
+  let msg = document.getElementById("msgInput").value;
+  let user = auth.currentUser;
+
+  if(!msg) return;
+
+  db.ref("teams/team"+num).push({
+    sender: user.email,
+    message: msg,
+    time: Date.now()
+  });
+
+  document.getElementById("msgInput").value="";
 }
 
 </script>
