@@ -3,133 +3,165 @@
 <head>
 <meta charset="UTF-8">
 <title>Vietnam On Top</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
 <style>
-body{font-family:Arial;margin:0;background:#0b3d91;color:white}
+body{margin:0;font-family:Arial;background:#0b3d91;color:white}
 .header{background:red;padding:12px;text-align:center;font-weight:bold}
-.box{padding:15px}
-button{padding:8px 12px;border:none;border-radius:6px;margin-top:5px}
-.red{background:#b30000;color:white;width:100%}
-.green{background:green;color:white;width:100%}
-.admin-panel{background:#092c66;padding:10px;margin-top:20px;border-radius:10px}
+.section{padding:15px}
+input{padding:8px;margin:5px 0}
+button{padding:8px;border:none;border-radius:6px;margin-top:5px}
+.team{background:white;color:black;padding:10px;margin:5px 0;border-radius:8px}
+.admin{background:#092c66;padding:10px;margin-top:15px;border-radius:10px}
+.back{background:white;color:black;position:absolute;left:10px;top:10px}
 </style>
 </head>
 <body>
 
 <div class="header">🇻🇳 Vietnam On Top 🇻🇳</div>
 
-<div class="box">
-
-<h3>Hồ sơ</h3>
-<p id="profile"></p>
-
-<div>
-<h3>🌟 Premium [ĐẶC QUYỀN]</h3>
-<p id="premiumInfo"></p>
-<button id="premiumBtn"></button>
+<div id="authSection" class="section">
+<h3>Đăng ký / Đăng nhập</h3>
+<input id="username" placeholder="Tên hiển thị"><br>
+<input id="email" placeholder="Email"><br>
+<input id="password" type="password" placeholder="Mật khẩu"><br>
+<button onclick="register()">Đăng ký</button>
+<button onclick="login()">Đăng nhập</button>
 </div>
 
-<div id="adminPanel"></div>
-
-</div>
+<div id="appSection" class="section" style="display:none"></div>
+<div id="teamSection" class="section" style="display:none"></div>
 
 <script>
+
 const ADMIN_ID = "55VD4pQJIFu1fvacjl_wY2KBjzl2";
 
-// Giả lập user hiện tại
-let currentUser = {
-  username:"Admin App",
-  uid:"55VD4pQJIFu1fvacjl_wY2KBjzl2",
-  premium:false,
-  banned:false,
-  kicked:false
+const firebaseConfig = {
+apiKey: "AIzaSyCvKaa4S4icydrj2JYA5ch0ckGC_mT0bvc",
+authDomain: "vietnamontop-77401.firebaseapp.com",
+databaseURL: "https://vietnamontop-77401-default-rtdb.firebaseio.com",
+projectId: "vietnamontop-77401",
+storageBucket: "vietnamontop-77401.firebasestorage.app",
+messagingSenderId: "89611948481",
+appId: "1:89611948481:web:0106f02e15f429679d5f40"
 };
 
-// ===== BAN CHECK =====
-if(localStorage.getItem("banned_"+currentUser.uid) === "true"){
-  document.body.innerHTML="<h2 style='color:red;text-align:center;margin-top:50px'>🚫 Bạn đã vi phạm chính sách của chúng tôi.</h2>";
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+
+function register(){
+  const u = username.value;
+  const e = email.value;
+  const p = password.value;
+
+  auth.createUserWithEmailAndPassword(e,p)
+  .then(cred=>{
+    db.ref("users/"+cred.user.uid).set({
+      username:u,
+      banned:false
+    });
+    alert("Đăng ký thành công");
+  })
+  .catch(err=>alert(err.message));
 }
 
-// ===== KICK CHECK =====
-if(sessionStorage.getItem("kick_"+currentUser.uid)==="true"){
-  document.body.innerHTML="<h2 style='color:orange;text-align:center;margin-top:50px'>⚠️ [Data] Hệ thống phát hiện phiên dùng khả nghi.<br>Bạn đã bị đá khỏi phiên sử dụng.<br><br>Vui lòng mở lại ứng dụng.</h2>";
+function login(){
+  auth.signInWithEmailAndPassword(email.value,password.value)
+  .catch(err=>alert(err.message));
 }
 
-// ===== PROFILE =====
-function renderProfile(){
-  let tag="";
-  let idDisplay=currentUser.uid;
-
-  if(currentUser.uid===ADMIN_ID){
-      tag=" 🛡";
-      idDisplay="Administrator";
-  }
-
-  document.getElementById("profile").innerHTML=
-  "Tên: "+currentUser.username+tag+"<br>"+
-  "ID: "+idDisplay;
-}
-
-// ===== PREMIUM =====
-function renderPremium(){
-  const info=document.getElementById("premiumInfo");
-  const btn=document.getElementById("premiumBtn");
-
-  if(currentUser.uid===ADMIN_ID){
-      info.innerHTML="Giá: FREE (Admin)<br>Hạn: Vĩnh viễn<br>Đặc quyền: Toàn quyền hệ thống";
-      btn.innerText="Nhận Premium (FREE)";
-      btn.className="green";
-      btn.onclick=function(){
-          alert("🎉 Đã Mua Premium thành công (Admin Free)");
-          currentUser.premium=true;
-      };
+auth.onAuthStateChanged(user=>{
+  if(user){
+    db.ref("users/"+user.uid).once("value").then(snap=>{
+      if(snap.val()?.banned){
+        alert("🚫 Bạn đã vi phạm chính sách.");
+        auth.signOut();
+        return;
+      }
+      loadApp(user.uid);
+    });
   } else {
-      info.innerHTML="Giá: 99.000 VNĐ / 30 ngày<br>Đặc quyền: Badge + Ưu tiên";
-      btn.innerText="Nhà Phát Hành chưa kích hoạt mở bán Premium [ĐẶC QUYỀN]";
-      btn.className="red";
-      btn.onclick=function(){
-          alert("❌ Premium chưa mở bán");
-      };
+    authSection.style.display="block";
+    appSection.style.display="none";
+    teamSection.style.display="none";
   }
+});
+
+function loadApp(uid){
+  authSection.style.display="none";
+  appSection.style.display="block";
+  teamSection.style.display="none";
+
+  db.ref("users/"+uid).once("value").then(snap=>{
+    const data=snap.val();
+    let tag = uid===ADMIN_ID?" 🛡":"";
+    let idDisplay = uid===ADMIN_ID?"Administrator":uid;
+
+    let html=`
+    <h3>Hồ sơ</h3>
+    Tên: ${data.username}${tag}<br>
+    ID: ${idDisplay}<br>
+    <button onclick="logout()">Đăng xuất</button>
+    <hr>
+    <h3>Danh sách Đội</h3>
+    `;
+
+    for(let i=1;i<=20;i++){
+      html+=`<div class="team" onclick="enterTeam(${i})">Đội ${i}</div>`;
+    }
+
+    if(uid===ADMIN_ID){
+      html+=`
+      <div class="admin">
+      <h3>🛡 ADMIN PANEL</h3>
+      <button onclick="banUser()">Ban User</button>
+      <button onclick="kickUser()">Kick User</button>
+      </div>
+      `;
+    }
+
+    appSection.innerHTML=html;
+  });
 }
 
-// ===== ADMIN PANEL =====
-function renderAdmin(){
-  if(currentUser.uid!==ADMIN_ID) return;
+function logout(){
+  auth.signOut();
+}
 
-  document.getElementById("adminPanel").innerHTML=`
-  <div class="admin-panel">
-  <h3>🛡 ADMIN PANEL</h3>
-  <button class="red" onclick="banUser()">Ban User</button>
-  <button class="red" onclick="kickUser()">Kick User</button>
-  </div>
+function enterTeam(num){
+  appSection.style.display="none";
+  teamSection.style.display="block";
+  teamSection.innerHTML=`
+  <button class="back" onclick="back()">← Back</button>
+  <h2>🇻🇳 Đội ${num}</h2>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/2/21/Flag_of_Vietnam.svg" width="120">
   `;
 }
 
+function back(){
+  teamSection.style.display="none";
+  appSection.style.display="block";
+}
+
 function banUser(){
-  let target=prompt("Nhập UID cần BAN:");
-  if(!target) return;
-  if(target===ADMIN_ID){
-      alert("❌ Không thể ban ADMIN");
-      return;
-  }
-  localStorage.setItem("banned_"+target,"true");
-  alert("🚫 Đã BAN vĩnh viễn UID: "+target);
+  const uid=prompt("Nhập UID cần BAN:");
+  if(!uid) return;
+  if(uid===ADMIN_ID){alert("Không thể ban ADMIN");return;}
+  db.ref("users/"+uid+"/banned").set(true);
+  alert("Đã BAN UID: "+uid);
 }
 
 function kickUser(){
-  let target=prompt("Nhập UID cần KICK:");
-  if(!target) return;
-  if(target===ADMIN_ID){
-      alert("❌ Không thể kick ADMIN");
-      return;
-  }
-  sessionStorage.setItem("kick_"+target,"true");
-  alert("⚠️ Đã Kick phiên UID: "+target);
+  const uid=prompt("Nhập UID cần KICK:");
+  if(!uid) return;
+  if(uid===ADMIN_ID){alert("Không thể kick ADMIN");return;}
+  db.ref("kicks/"+uid).set(true);
+  alert("Đã Kick UID: "+uid);
 }
-
-renderProfile();
-renderPremium();
-renderAdmin();
 
 </script>
 </body>
