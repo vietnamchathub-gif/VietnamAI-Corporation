@@ -42,12 +42,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-db.ref("/users").once("value")
-.then(snapshot => {
+db.ref("users").once("value", function(snapshot) {
+
   const data = snapshot.val();
   const list = document.getElementById("list");
 
-  if(!data){
+  if (!data || Object.keys(data).length === 0) {
     list.innerHTML = "Không có user";
     return;
   }
@@ -64,7 +64,7 @@ db.ref("/users").once("value")
   </tr>
   `;
 
-  Object.keys(data).forEach(uid=>{
+  Object.keys(data).forEach(uid => {
     const u = data[uid];
 
     html += `
@@ -72,8 +72,8 @@ db.ref("/users").once("value")
       <td>${uid}</td>
       <td>${u.name || ""}</td>
       <td>${u.username || ""}</td>
-      <td>${u.premium}</td>
-      <td>${u.banned}</td>
+      <td>${u.premium || false}</td>
+      <td>${u.banned || false}</td>
       <td>${u.created || ""}</td>
     </tr>
     `;
@@ -81,10 +81,9 @@ db.ref("/users").once("value")
 
   html += "</table>";
   list.innerHTML = html;
-})
-.catch(error=>{
-  document.getElementById("list").innerHTML =
-  "LỖI: " + error.message;
+
+}, function(error){
+  document.getElementById("list").innerHTML = "Lỗi: " + error.message;
 });
 </script>
 
