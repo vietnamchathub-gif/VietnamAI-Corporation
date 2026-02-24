@@ -99,15 +99,15 @@ function loadApp(uid){
   db.ref("users/"+uid).once("value").then(snap=>{
     const data=snap.val();
     let tag = uid===ADMIN_ID?" 🛡":"";
-    let idDisplay = uid===ADMIN_ID?"Administrator":uid;
+    let idDisplay = uid===ADMIN_ID?"Staff App: Admin •Quản Trị Viên•":uid;
 
     let html=`
     <h3>Hồ sơ</h3>
     Tên: ${data.username}${tag}<br>
     ID: ${idDisplay}<br>
-    <button onclick="logout()">Đăng xuất</button>
+    <button onclick="logout()">Đăng xuất tài khoản</button>
     <hr>
-    <h3>Danh sách Đội</h3>
+    <h3>Danh sách Ghép Đội</h3>
     `;
 
     for(let i=1;i<=20;i++){
