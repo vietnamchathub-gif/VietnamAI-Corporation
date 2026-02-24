@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Recruitment Admin</title>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+  <style>
+    body{
+      background:#111;
+      color:white;
+      font-family:Arial;
+      padding:20px;
+    }
+    .card{
+      background:#222;
+      padding:15px;
+      margin:10px 0;
+      border-radius:8px;
+    }
+    button{
+      padding:5px 10px;
+      margin-top:5px;
+      border:none;
+      border-radius:4px;
+      cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h2>📋 Recruitment Admin</h2>
+<div id="list">Loading...</div>
+
+<script>
+
+  const firebaseConfig = {
+    apiKey: "API_KEY_CỦA_MÀY",
+    authDomain: "PROJECT_ID.firebaseapp.com",
+    databaseURL: "DATABASE_URL",
+    projectId: "PROJECT_ID"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const list = document.getElementById("list");
+
+  db.ref("recruitment").on("value", snapshot => {
+    list.innerHTML = "";
+
+    snapshot.forEach(child => {
+      const data = child.val();
+      const id = child.key;
+
+      list.innerHTML += `
+        <div class="card">
+          <b>${data.name}</b><br>
+          Email: ${data.email}<br>
+          Position: ${data.position}<br>
+          Status: ${data.status || "pending"}<br>
+
+          <button style="background:green;color:white"
+            onclick="approveRecruitment('${id}')">
+            ✅ Duyệt
+          </button>
+
+          <button style="background:red;color:white"
+            onclick="rejectRecruitment('${id}')">
+            ❌ Từ chối
+          </button>
+        </div>
+      `;
+    });
+
+  });
+
+  function approveRecruitment(id){
+    db.ref("recruitment/" + id).update({
+      status: "approved"
+    })
+    .then(()=>{
+      alert("✅ Đã duyệt");
+    });
+  }
+
+  function rejectRecruitment(id){
+    db.ref("recruitment/" + id).update({
+      status: "rejected"
+    })
+    .then(()=>{
+      alert("❌ Đã từ chối");
+    });
+  }
+
+</script>
+
+</body>
+</html>
