@@ -88,6 +88,16 @@ db.ref("users").once("value", function(snapshot) {
 }, function(error){
   document.getElementById("list").innerHTML = "Lỗi: " + error.message;
 });
+  function unbanUser(uid){
+  db.ref("users/" + uid + "/banned").set(false)
+  .then(()=>{
+    alert("Đã mở khóa");
+    location.reload();
+  })
+  .catch(error=>{
+    alert("Lỗi: " + error.message);
+  });
+  }
 </script>
 
 </body>
