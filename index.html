@@ -4,10 +4,6 @@
 <meta charset="UTF-8">
 <title>Vietnam On Top</title>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
-
 <style>
 body{font-family:Arial;background:#0a1f44;color:white;text-align:center;margin:0}
 input,button{padding:8px;margin:5px;border-radius:5px;border:none}
@@ -15,7 +11,6 @@ button{cursor:pointer}
 .teamBtn{display:block;width:90%;margin:5px auto;background:#1e3c72;color:white}
 .chatBox{height:200px;overflow:auto;background:white;color:black;margin:10px}
 .adminBox{background:#132d63;padding:10px;margin:10px;border-radius:10px}
-.redNotice{border:2px solid red;color:red;padding:10px;margin:10px}
 .backBtn{background:orange}
 </style>
 </head>
@@ -23,51 +18,32 @@ button{cursor:pointer}
 
 <h2>🇻🇳 Vietnam On Top 🇻🇳</h2>
 
+<!-- AUTH -->
 <div id="authSection">
 <input id="email" placeholder="Email"><br>
 <input id="password" type="password" placeholder="Mật khẩu"><br>
 <button onclick="register()">Đăng ký</button>
 <button onclick="login()">Đăng nhập</button>
+<button onclick="adminCreateAccount()">TẠO TÀI KHOẢN</button>
 </div>
 
+<!-- APP -->
 <div id="appSection" style="display:none">
 
 <button onclick="logout()">Đăng xuất</button>
 
-<!-- PROFILE -->
-<div class="adminBox">
-<h3>👤 Hồ sơ</h3>
-<p id="profileInfo"></p>
-</div>
-
-<!-- TEAM LIST -->
 <div id="teamList"></div>
 
-<!-- CHAT -->
 <div id="chatSection" style="display:none">
 <button class="backBtn" onclick="back()">← Back</button>
 <h3 id="teamTitle"></h3>
 <div class="chatBox" id="chatBox"></div>
-<div id="chatInputArea">
 <input id="msgInput" placeholder="Nhập tin nhắn">
 <button onclick="sendMsg()">Gửi</button>
 </div>
-</div>
 
-<!-- PREMIUM -->
-<div class="adminBox">
-<h3>⭐ Premium</h3>
-<p>Giá: 49.000đ / 30 ngày</p>
-<p>Đặc quyền: ⭐ Biểu tượng VIP</p>
-<button onclick="buyPremium()">Mua Premium</button>
-<div id="premiumNotice"></div>
-</div>
-
-<!-- ADMIN PANEL -->
 <div id="adminPanel" class="adminBox" style="display:none">
 <h3>🛡 ADMIN PANEL</h3>
-<button onclick="banPrompt()">BAN USER</button>
-<button onclick="kickPrompt()">KICK USER</button>
 </div>
 
 </div>
@@ -76,7 +52,7 @@ button{cursor:pointer}
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, set, push, onValue, remove, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
 apiKey: "THAY_CONFIG",
@@ -88,83 +64,47 @@ messagingSenderId: "THAY",
 appId: "THAY"
 };
 
-const ADMIN_UID="o4WlbBoDRbPOTvbg69juPM7Iq0s1";
+const ADMIN_UID = "o4WlbBoDRbPOTvbg69juPM7Iq0s1";
 
-const app=initializeApp(firebaseConfig);
-const auth=getAuth();
-const db=getDatabase();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getDatabase();
 
-let currentTeam=null;
-let currentRole="user";
+let currentTeam = null;
 
-window.register=()=>{
+/* AUTH */
+
+window.register = () => {
 createUserWithEmailAndPassword(auth,email.value,password.value)
-.then(user=>{
-set(ref(db,"users/"+user.user.uid),{
-role:"user",
-banned:false,
-premium:false
-});
-});
+.then(()=>alert("Đăng ký thành công"))
+.catch(e=>alert(e.message));
 };
 
-window.login=()=>{
-signInWithEmailAndPassword(auth,email.value,password.value);
+window.login = () => {
+signInWithEmailAndPassword(auth,email.value,password.value)
+.then(()=>alert("Đăng nhập thành công"))
+.catch(e=>alert(e.message));
 };
 
-window.logout=()=>signOut(auth);
+window.logout = () => signOut(auth);
 
 onAuthStateChanged(auth,user=>{
 if(user){
-
-get(ref(db,"users/"+user.uid)).then(snap=>{
-let data=snap.val();
-
-if(data?.banned){
-alert("Bạn đã bị BAN");
-logout();
-return;
-}
-
-currentRole=data?.role || "user";
-
 authSection.style.display="none";
 appSection.style.display="block";
 
-loadProfile(user);
-loadTeams();
-
-if(user.uid===ADMIN_UID){
-currentRole="admin";
+if(user.uid === ADMIN_UID){
 adminPanel.style.display="block";
 }
 
-});
+loadTeams();
 }else{
 authSection.style.display="block";
 appSection.style.display="none";
 }
 });
 
-function loadProfile(user){
-
-if(user.uid===ADMIN_UID){
-profileInfo.innerHTML=
-"🔱 ADMIN TỐI CAO<br>Quyền: Quản lý toàn hệ thống<br>Chat trong đội: KHÔNG<br>Chat cộng đồng: CÓ";
-return;
-}
-
-if(currentRole==="staff"){
-profileInfo.innerHTML=
-"🛡 STAFF<br>Quyền: Kiểm duyệt<br>Chat trong đội: KHÔNG<br>Chat cộng đồng: CÓ";
-return;
-}
-
-profileInfo.innerHTML=
-"👤 USER<br>Email: "+user.email+
-"<br>UID: "+user.uid+
-"<br>Chat trong đội: CÓ";
-}
+/* TEAM */
 
 function loadTeams(){
 teamList.innerHTML="";
@@ -177,7 +117,7 @@ teamList.appendChild(btn);
 }
 }
 
-function openTeam(team){
+window.openTeam = (team)=>{
 currentTeam=team;
 teamList.style.display="none";
 chatSection.style.display="block";
@@ -187,22 +127,15 @@ onValue(ref(db,"messages/"+team),snap=>{
 chatBox.innerHTML="";
 snap.forEach(child=>{
 let data=child.val();
-chatBox.innerHTML+=`<div>${data.text}</div>`;
-});
-});
 
-if(currentRole==="admin" || currentRole==="staff"){
-chatInputArea.style.display="none";
-}else{
-chatInputArea.style.display="block";
-}
+let name = data.email;
+if(data.uid === ADMIN_UID){
+name="🔱 ADMIN";
 }
 
-window.sendMsg=()=>{
-push(ref(db,"messages/"+currentTeam),{
-text:msgInput.value
+chatBox.innerHTML += `<div><b>${name}</b>: ${data.text}</div>`;
 });
-msgInput.value="";
+});
 };
 
 window.back=()=>{
@@ -210,33 +143,32 @@ chatSection.style.display="none";
 teamList.style.display="block";
 };
 
-window.banPrompt=()=>{
-let uid=prompt("Nhập UID cần BAN:");
-if(uid){
-set(ref(db,"users/"+uid+"/banned"),true);
-alert("Đã BAN");
-}
+window.sendMsg=()=>{
+push(ref(db,"messages/"+currentTeam),{
+email:auth.currentUser.email,
+uid:auth.currentUser.uid,
+text:msgInput.value
+});
+msgInput.value="";
 };
 
-window.kickPrompt=()=>{
-let uid=prompt("Nhập UID cần KICK:");
-if(uid && currentTeam){
-get(ref(db,"messages/"+currentTeam)).then(snap=>{
-snap.forEach(child=>{
-if(child.val().uid===uid){
-remove(ref(db,"messages/"+currentTeam+"/"+child.key));
-}
-});
-alert("Đã KICK");
-});
-}
-};
+/* ADMIN CREATE ACCOUNT */
 
-window.buyPremium=()=>{
-premiumNotice.innerHTML=
-`<div class="redNotice">
-Premium [ĐẶC QUYỀN] này chưa được Nhà Phát Hành bán trên ứng dụng
-</div>`;
+window.adminCreateAccount = () => {
+
+if(!auth.currentUser || auth.currentUser.uid !== ADMIN_UID){
+alert("Chỉ ADMIN mới được tạo tài khoản");
+return;
+}
+
+let newEmail = prompt("Email tài khoản mới:");
+let newPass = prompt("Mật khẩu:");
+
+if(!newEmail || !newPass) return;
+
+createUserWithEmailAndPassword(auth,newEmail,newPass)
+.then(()=>alert("Đã tạo tài khoản"))
+.catch(e=>alert(e.message));
 };
 
 </script>
