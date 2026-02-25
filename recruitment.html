@@ -1,180 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Recruitment</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body{
-      background:#111;
-      color:white;
-      font-family:Arial;
-      text-align:center;
-      padding:20px;
-    }
-    input,textarea{
-      width:90%;
-      padding:10px;
-      margin:10px 0;
-      border-radius:8px;
-      border:none;
-    }
-    button{
-      padding:12px 20px;
-      border:none;
-      border-radius:8px;
-      background:red;
-      color:white;
-      font-weight:bold;
-      cursor:pointer;
-    }
-    button:disabled{
-      background:gray;
-      cursor:not-allowed;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>Tuyển Dụng</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
 </head>
 <body>
 
-<h2>Recruitment</h2>
+<h2>Nộp Đơn Tuyển Dụng</h2>
 
-<input id="name" placeholder="Your Name">
-<input id="email" placeholder="Your Email">
-<textarea id="reason" placeholder="Why join?" rows="4"></textarea>
+<input id="name" placeholder="Họ tên"><br><br>
+<input id="age" placeholder="Tuổi"><br><br>
+<input id="contact" placeholder="Liên hệ"><br><br>
+<input id="exp" placeholder="Kinh nghiệm"><br><br>
+<textarea id="reason" placeholder="Lý do ứng tuyển"></textarea><br><br>
 
-<br>
-<button id="applyBtn">Apply</button>
-<p id="status"></p>
-<p id="countdown" style="color:orange;"></p>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<button onclick="submitApplication()">Gửi đơn</button>
 
 <script>
-
 const firebaseConfig = {
-  apiKey: "DÁN_APIKEY",
-  authDomain: "DÁN_AUTHDOMAIN",
-  databaseURL: "DÁN_DATABASEURL",
-  projectId: "DÁN_PROJECTID",
-  storageBucket: "DÁN_STORAGE",
-  messagingSenderId: "DÁN_SENDERID",
-  appId: "DÁN_APPID"
+  apiKey: "API_KEY",
+  authDomain: "PROJECT_ID.firebaseapp.com",
+  databaseURL: "https://PROJECT_ID-default-rtdb.firebaseio.com",
+  projectId: "PROJECT_ID"
 };
 
 firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 const db = firebase.database();
 
-const TWO_YEARS = 1000 * 60 * 60 * 24 * 365 * 2;
+function submitApplication() {
 
-const applyBtn = document.getElementById("applyBtn");
-const statusText = document.getElementById("status");
-const countdownText = document.getElementById("countdown");
-
-applyBtn.addEventListener("click", apply);
-
-function apply(){
-
-  db.ref("recruitmentLock").once("value").then(lockSnap=>{
-
-    if(lockSnap.exists()){
-      alert("Đã giới hạn lượt ứng tuyển");
-      return;
-    }
-
-    const name = document.getElementById("name").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const reason = document.getElementById("reason").value.trim();
-
-    if(!name || !email || !reason){
-      alert("Vui lòng nhập đầy đủ thông tin");
-      return;
-    }
-
-    const id = Date.now();
-
-    db.ref("applications/"+id).set({
-      name,
-      email,
-      reason,
-      createdAt: Date.now()
-    }).then(()=>{
-
-      db.ref("applications").once("value").then(snap=>{
-
-        const data = snap.val() || {};
-        const keys = Object.keys(data);
-
-        if(keys.length >= 100){
-
-          // Random chọn 5 hồ sơ
-          const shuffled = keys.sort(()=>0.5 - Math.random());
-          const selectedKeys = shuffled.slice(0,5);
-
-          const selectedData = {};
-          selectedKeys.forEach(k=>{
-            selectedData[k] = data[k];
-          });
-
-          db.ref("selectedRecruitment").set(selectedData);
-          db.ref("recruitmentLock").set({
-            lockedAt: Date.now()
-          });
-          db.ref("applications").remove();
-
-          lockSystem();
-        }
-
-        alert("Ứng tuyển thành công!");
-      });
-
-    });
-
-  });
-
-}
-
-function lockSystem(){
-  applyBtn.disabled = true;
-  statusText.innerText = "Đã giới hạn lượt ứng tuyển";
-  startCountdown();
-}
-
-function startCountdown(){
-
-  db.ref("recruitmentLock").once("value").then(snap=>{
-    if(!snap.exists()) return;
-
-    const endTime = snap.val().lockedAt + TWO_YEARS;
-
-    setInterval(()=>{
-      const diff = endTime - Date.now();
-
-      if(diff <= 0){
-        db.ref("recruitmentLock").remove();
-        applyBtn.disabled = false;
-        statusText.innerText = "";
-        countdownText.innerText = "";
-        return;
-      }
-
-      const days = Math.floor(diff / (1000*60*60*24));
-      countdownText.innerText = "Mở lại sau: " + days + " ngày";
-
-    },1000);
-
-  });
-
-}
-
-// Kiểm tra khi load trang
-db.ref("recruitmentLock").once("value").then(snap=>{
-  if(snap.exists()){
-    lockSystem();
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Vui lòng đăng nhập trước");
+    return;
   }
-});
 
+  db.ref("applications").push({
+    uid: user.uid,
+    name: document.getElementById("name").value,
+    age: document.getElementById("age").value,
+    contact: document.getElementById("contact").value,
+    exp: document.getElementById("exp").value,
+    reason: document.getElementById("reason").value,
+    status: "pending",
+    createdAt: Date.now()
+  });
+
+  alert("Đã gửi đơn thành công");
+}
 </script>
 
 </body>
-</html>         
+</html>
