@@ -15,8 +15,12 @@ button{padding:8px 15px;margin:5px}
 .teamBtn{display:block;width:90%;margin:10px auto;padding:10px;background:#fff;color:#000;border:none;border-radius:5px}
 #messages{background:#fff;color:#000;height:220px;overflow:auto;margin:10px;padding:10px}
 .adminBox{background:#08204d;padding:10px;margin-top:15px;border-radius:10px}
-.userRow{background:white;color:black;margin:5px;padding:5px;border-radius:5px}
-.backBtn{background:#fff;color:#000;border:none;padding:6px 12px;border-radius:5px}
+.backBtn{background:white;color:black;border:none;border-radius:5px}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6)}
+.modalContent{background:white;color:black;padding:20px;margin:20% auto;width:85%;border-radius:10px}
+.premiumBox{background:#111d3a;padding:15px;margin-top:15px;border-radius:10px}
+.buyBtn{background:red;color:white;border:none;border-radius:5px;padding:10px 20px}
+.redNotice{border:3px solid red;padding:15px;margin-top:10px;color:red;font-weight:bold}
 </style>
 </head>
 <body>
@@ -29,17 +33,32 @@ button{padding:8px 15px;margin:5px}
 <input id="password" type="password" placeholder="Mật khẩu"><br>
 <button onclick="register()">Đăng ký</button>
 <button onclick="login()">Đăng nhập</button>
-<button onclick="resetPassword()">Quên mật khẩu</button>
 </div>
 
 <!-- MAIN -->
 <div id="appSection" style="display:none">
+
 <h3>Danh sách 20 đội</h3>
 <div id="teamList"></div>
 
+<!-- PREMIUM -->
+<div class="premiumBox">
+<h3>⭐ Premium</h3>
+<p>Giá: 49.000đ / 30 ngày</p>
+<p>Đặc quyền:</p>
+<p>- Biểu tượng ⭐ bên cạnh tên</p>
+<p>- Ưu tiên hiển thị tin nhắn</p>
+<p>- Vào phòng chat VIP (sắp ra mắt)</p>
+<p>- Không giới hạn số tin nhắn/ngày</p>
+<button class="buyBtn" onclick="buyPremium()">Mua Premium</button>
+<div id="premiumNotice"></div>
+</div>
+
+<!-- ADMIN PANEL -->
 <div id="adminPanel" style="display:none" class="adminBox">
 <h3>🛡 ADMIN PANEL</h3>
-<div id="userList"></div>
+<button onclick="openBan()">BAN USER</button>
+<button onclick="openKick()">KICK USER</button>
 </div>
 
 <button onclick="logout()">Đăng xuất</button>
@@ -54,159 +73,166 @@ button{padding:8px 15px;margin:5px}
 <button onclick="sendMsg()">Gửi</button>
 </div>
 
+<!-- MODAL -->
+<div id="actionModal" class="modal">
+<div class="modalContent">
+<h3 id="modalTitle"></h3>
+<input id="targetUID" placeholder="Nhập UID người cần xử lý"><br>
+<button onclick="confirmAction()">Hoàn Tất Xử Lí</button>
+<button onclick="closeModal()">Hủy</button>
+</div>
+</div>
+
 <script>
 
-const ADMIN_UID = "o4WlbBoDRbPOTvbg69juPM7Iq0s1";
+const ADMIN_UID="o4WlbBoDRbPOTvbg69juPM7Iq0s1";
+let currentTeam=null;
+let currentAction=null;
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCvKaa4S4icydrj2JYA5ch0ckGC_mT0bvc",
-  authDomain: "vietnamontop-77401.firebaseapp.com",
-  databaseURL: "https://vietnamontop-77401-default-rtdb.firebaseio.com",
-  projectId: "vietnamontop-77401",
-  storageBucket: "vietnamontop-77401.firebasestorage.app",
-  messagingSenderId: "89611948481",
-  appId: "1:89611948481:web:0106f02e15f429679d5f40"
+const firebaseConfig={
+apiKey:"AIzaSyCvKaa4S4icydrj2JYA5ch0ckGC_mT0bvc",
+authDomain:"vietnamontop-77401.firebaseapp.com",
+databaseURL:"https://vietnamontop-77401-default-rtdb.firebaseio.com",
+projectId:"vietnamontop-77401",
+storageBucket:"vietnamontop-77401.firebasestorage.app",
+messagingSenderId:"89611948481",
+appId:"1:89611948481:web:0106f02e15f429679d5f40"
 };
 
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.database();
-
-let currentTeam = null;
+const auth=firebase.auth();
+const db=firebase.database();
 
 function register(){
-  const email = email.value;
-  const password = password.value;
-
-  auth.createUserWithEmailAndPassword(email,password)
-  .then(user=>{
-    db.ref("users/"+user.user.uid).set({
-      email:email,
-      banned:false
-    });
-    alert("Đăng ký thành công");
-  })
-  .catch(e=>alert(e.message));
+auth.createUserWithEmailAndPassword(email.value,password.value)
+.then(user=>{
+db.ref("users/"+user.user.uid).set({banned:false});
+alert("Đăng ký thành công");
+})
+.catch(e=>alert(e.message));
 }
 
 function login(){
-  auth.signInWithEmailAndPassword(email.value,password.value)
-  .catch(e=>alert(e.message));
-}
-
-function resetPassword(){
-  if(!email.value){alert("Nhập email");return;}
-  auth.sendPasswordResetEmail(email.value)
-  .then(()=>alert("Đã gửi email reset"))
-  .catch(e=>alert(e.message));
+auth.signInWithEmailAndPassword(email.value,password.value)
+.catch(e=>alert(e.message));
 }
 
 function logout(){auth.signOut();}
 
 auth.onAuthStateChanged(user=>{
-  if(user){
+if(user){
+db.ref("users/"+user.uid).once("value").then(snap=>{
+if(snap.val() && snap.val().banned){
+alert("Tài khoản đã bị BAN");
+logout();
+}
+});
 
-    db.ref("users/"+user.uid).once("value").then(snap=>{
-      if(snap.val() && snap.val().banned){
-        alert("Tài khoản đã bị BAN");
-        logout();
-      }
-    });
+authSection.style.display="none";
+appSection.style.display="block";
 
-    authSection.style.display="none";
-    appSection.style.display="block";
+if(user.uid===ADMIN_UID){
+adminPanel.style.display="block";
+}
 
-    if(user.uid === ADMIN_UID){
-      adminPanel.style.display="block";
-      loadUsers();
-    }
-
-    loadTeams();
-  }else{
-    authSection.style.display="block";
-    appSection.style.display="none";
-    teamSection.style.display="none";
-  }
+loadTeams();
+}else{
+authSection.style.display="block";
+appSection.style.display="none";
+teamSection.style.display="none";
+}
 });
 
 function loadTeams(){
-  teamList.innerHTML="";
-  for(let i=1;i<=20;i++){
-    teamList.innerHTML+=`<button class="teamBtn" onclick="enterTeam(${i})">Đội ${i}</button>`;
-  }
+teamList.innerHTML="";
+for(let i=1;i<=20;i++){
+teamList.innerHTML+=`<button class="teamBtn" onclick="enterTeam(${i})">Đội ${i}</button>`;
+}
 }
 
 function enterTeam(num){
-  currentTeam=num;
-  appSection.style.display="none";
-  teamSection.style.display="block";
-  teamTitle.innerText="Đội "+num;
-  loadMessages();
+currentTeam=num;
+appSection.style.display="none";
+teamSection.style.display="block";
+teamTitle.innerText="Đội "+num;
+loadMessages();
 }
 
 function back(){
-  teamSection.style.display="none";
-  appSection.style.display="block";
+teamSection.style.display="none";
+appSection.style.display="block";
 }
 
 function sendMsg(){
-  const user=auth.currentUser;
-  if(!msgInput.value)return;
-
-  db.ref("teams/team"+currentTeam).push({
-    sender:user.email,
-    uid:user.uid,
-    message:msgInput.value,
-    time:Date.now()
-  });
-
-  msgInput.value="";
+if(!msgInput.value)return;
+db.ref("teams/team"+currentTeam).push({
+sender:auth.currentUser.email,
+uid:auth.currentUser.uid,
+message:msgInput.value,
+time:Date.now()
+});
+msgInput.value="";
 }
 
 function loadMessages(){
-  messages.innerHTML="";
-  db.ref("teams/team"+currentTeam).off();
-  db.ref("teams/team"+currentTeam).on("child_added",snap=>{
-    const data=snap.val();
-    messages.innerHTML+=`
-      <div>
-        <b>${data.sender}:</b> ${data.message}
-        ${auth.currentUser.uid===ADMIN_UID ?
-          `<button onclick="kickUser('${data.uid}')">KICK</button>` : ``}
-      </div>`;
-    messages.scrollTop=messages.scrollHeight;
-  });
+messages.innerHTML="";
+db.ref("teams/team"+currentTeam).off();
+db.ref("teams/team"+currentTeam).on("child_added",snap=>{
+const data=snap.val();
+messages.innerHTML+=`<div><b>${data.sender}</b>: ${data.message}</div>`;
+messages.scrollTop=messages.scrollHeight;
+});
 }
 
-function kickUser(uid){
-  db.ref("teams/team"+currentTeam).once("value").then(snap=>{
-    snap.forEach(child=>{
-      if(child.val().uid===uid){
-        db.ref("teams/team"+currentTeam+"/"+child.key).remove();
-      }
-    });
-  });
+/* ADMIN ACTION */
+
+function openBan(){
+currentAction="ban";
+modalTitle.innerText="BAN USER";
+actionModal.style.display="block";
 }
 
-function loadUsers(){
-  userList.innerHTML="";
-  db.ref("users").on("value",snap=>{
-    userList.innerHTML="";
-    snap.forEach(child=>{
-      const uid=child.key;
-      const data=child.val();
-      userList.innerHTML+=`
-        <div class="userRow">
-          ${data.email}
-          <button onclick="banUser('${uid}')">BAN</button>
-        </div>`;
-    });
-  });
+function openKick(){
+currentAction="kick";
+modalTitle.innerText="KICK USER KHỎI ĐỘI";
+actionModal.style.display="block";
 }
 
-function banUser(uid){
-  db.ref("users/"+uid+"/banned").set(true);
-  alert("Đã BAN user");
+function closeModal(){
+actionModal.style.display="none";
+targetUID.value="";
+}
+
+function confirmAction(){
+const uid=targetUID.value;
+if(!uid)return;
+
+if(currentAction==="ban"){
+db.ref("users/"+uid+"/banned").set(true);
+alert("Đã BAN UID: "+uid);
+}
+
+if(currentAction==="kick"){
+db.ref("teams/team"+currentTeam).once("value").then(snap=>{
+snap.forEach(child=>{
+if(child.val().uid===uid){
+db.ref("teams/team"+currentTeam+"/"+child.key).remove();
+}
+});
+alert("Đã KICK UID khỏi đội");
+});
+}
+
+closeModal();
+}
+
+/* PREMIUM */
+
+function buyPremium(){
+premiumNotice.innerHTML=
+`<div class="redNotice">
+Premium [ĐẶC QUYỀN] này chưa được Nhà Phát Hành bán trên ứng dụng.
+</div>`;
 }
 
 </script>
