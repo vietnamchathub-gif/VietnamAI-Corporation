@@ -26,6 +26,9 @@ const db = firebase.database();
 
 const ADMIN_UID = "o4WlbBoDRbPOTvbg69juPM7Iq0s1";
 
+/* =========================
+   CHỈ ADMIN ĐƯỢC TRUY CẬP
+========================= */
 auth.onAuthStateChanged(user => {
 
   if (!user || user.uid !== ADMIN_UID) {
@@ -37,6 +40,9 @@ auth.onAuthStateChanged(user => {
   loadApplications();
 });
 
+/* =========================
+   LOAD DANH SÁCH HỒ SƠ
+========================= */
 function loadApplications() {
 
   db.ref("applications").on("value", snapshot => {
@@ -58,7 +64,7 @@ function loadApplications() {
           Lý do: ${data.reason}<br>
           Trạng thái: ${data.status}<br><br>
           <button onclick="approve('${key}', '${data.uid}')">Duyệt</button>
-          <button onclick="removeApp('${key}')">Xoá</button>
+          <button onclick="removeApp('${key}', '${data.uid}')">Xoá</button>
         </div>
       `;
     });
@@ -66,23 +72,34 @@ function loadApplications() {
   });
 }
 
+/* =========================
+   DUYỆT → THÊM staffList
+========================= */
 function approve(key, uid) {
 
-  db.ref("users/" + uid).update({
-    role: "staff"
-  });
+  // Thêm UID vào staffList
+  db.ref("staffList/" + uid).set(true);
 
-  db.ref("applications/" + key).update({
-    status: "approved"
-  });
-
-  alert("Đã duyệt & cấp quyền staff ⚙️");
-}
-
-function removeApp(key) {
+  // Xoá hồ sơ khỏi danh sách
   db.ref("applications/" + key).remove();
-  alert("Đã xoá đơn");
+
+  alert("Đã duyệt & cấp quyền ⚙️");
 }
+
+/* =========================
+   XOÁ HỒ SƠ
+========================= */
+function removeApp(key, uid) {
+
+  // Gỡ staff nếu có
+  db.ref("staffList/" + uid).remove();
+
+  // Xoá hồ sơ
+  db.ref("applications/" + key).remove();
+
+  alert("Đã xoá hồ sơ");
+}
+
 </script>
 
 </body>
