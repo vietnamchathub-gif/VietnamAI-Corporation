@@ -9,11 +9,13 @@ body{font-family:Arial;background:#0a1f44;color:white;text-align:center;margin:0
 input,button{padding:8px;margin:5px;border-radius:5px;border:none}
 button{cursor:pointer}
 .teamBtn{display:block;width:90%;margin:5px auto;background:#1e3c72;color:white}
-.chatBox{height:200px;overflow:auto;background:white;color:black;margin:10px}
+.chatBox{height:200px;overflow:auto;background:white;color:black;margin:10px;padding:5px}
 .adminBox{background:#132d63;padding:15px;margin:10px;border-radius:10px}
 .premiumBox{background:#132d63;padding:15px;margin:10px;border-radius:10px}
 .backBtn{background:orange}
 .buyBtn{background:red;color:white}
+table{width:100%;background:white;color:black;border-collapse:collapse}
+td,th{border:1px solid black;padding:4px;font-size:12px}
 </style>
 </head>
 <body>
@@ -43,18 +45,25 @@ button{cursor:pointer}
 <div class="premiumBox">
 <h3>⭐ Premium</h3>
 <p>Giá: 49.000đ / 30 ngày</p>
-<p>Đặc quyền:</p>
-<p>- Biểu tượng ⭐ bên cạnh tên</p>
-<p>- Ưu tiên hiển thị tin nhắn</p>
-<p>- Vào phòng chat VIP (sắp ra mắt)</p>
-<p>- Không giới hạn số tin nhắn/ngày</p>
-<button class="buyBtn">Mua Premium</button>
+<button class="buyBtn" onclick="buyPremium()">Mua Premium</button>
 </div>
 
 <div id="adminPanel" class="adminBox" style="display:none">
 <h3>🛡 ADMIN PANEL</h3>
-<button onclick="banUser()">BAN USER</button>
-<button onclick="kickUser()">KICK USER</button>
+
+<h4>Data User System</h4>
+<table>
+<thead>
+<tr>
+<th>UID</th>
+<th>Email</th>
+<th>Premium</th>
+<th>Banned</th>
+<th>Created</th>
+</tr>
+</thead>
+<tbody id="userTableBody"></tbody>
+</table>
 </div>
 
 <button onclick="logout()">Đăng xuất</button>
@@ -65,7 +74,7 @@ button{cursor:pointer}
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, push, onValue, set, get, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, set, get, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyCvKaa4S4icydrj2JYA5ch0ckGC_mT0bvc",
@@ -85,17 +94,16 @@ const db = getDatabase();
 
 let currentTeam = null;
 
-/* ================= AUTH ================= */
+/* AUTH */
 
 window.register = () => {
 createUserWithEmailAndPassword(auth,email.value,password.value)
 .then(cred=>{
-// 🔥 THÊM PHẦN USER SYSTEM
 set(ref(db,"users/"+cred.user.uid),{
-email:cred.user.email,
+email: cred.user.email,
 premium:false,
 banned:false,
-createdAt:Date.now()
+createdAt: Date.now()
 });
 })
 .catch(e=>alert(e.message));
@@ -108,33 +116,52 @@ signInWithEmailAndPassword(auth,email.value,password.value)
 
 window.logout = () => signOut(auth);
 
-onAuthStateChanged(auth,user=>{
-if(user){
+/* AUTH STATE */
 
-// 🔥 KIỂM TRA BỊ BAN
-get(ref(db,"users/"+user.uid)).then(snap=>{
-if(snap.exists() && snap.val().banned){
-alert("Tài khoản đã bị BAN!");
-signOut(auth);
+onAuthStateChanged(auth,user=>{
+
+if(!user){
+authSection.style.display="block";
+appSection.style.display="none";
 return;
 }
-});
 
 authSection.style.display="none";
 appSection.style.display="block";
 
-if(user.uid === ADMIN_UID){
-adminPanel.style.display="block";
-}
-
 loadTeams();
-}else{
-authSection.style.display="block";
-appSection.style.display="none";
+
+/* CHECK BAN */
+get(ref(db,"users/"+user.uid)).then(snap=>{
+if(snap.exists() && snap.val().banned){
+alert("Tài khoản đã bị BAN!");
+signOut(auth);
 }
 });
 
-/* ================= TEAM ================= */
+/* ADMIN ONLY LOAD USERS */
+if(user.uid === ADMIN_UID){
+adminPanel.style.display="block";
+
+onValue(ref(db,"users"),snap=>{
+userTableBody.innerHTML="";
+snap.forEach(child=>{
+const data = child.val();
+userTableBody.innerHTML += `
+<tr>
+<td>${child.key}</td>
+<td>${data.email}</td>
+<td>${data.premium}</td>
+<td>${data.banned}</td>
+<td>${new Date(data.createdAt).toLocaleDateString()}</td>
+</tr>`;
+});
+});
+}
+
+});
+
+/* TEAMS */
 
 function loadTeams(){
 teamList.innerHTML="";
@@ -168,6 +195,7 @@ teamList.style.display="block";
 };
 
 window.sendMsg=()=>{
+if(!msgInput.value) return;
 push(ref(db,"messages/"+currentTeam),{
 email:auth.currentUser.email,
 uid:auth.currentUser.uid,
@@ -176,22 +204,11 @@ text:msgInput.value
 msgInput.value="";
 };
 
-/* ================= ADMIN ================= */
+/* PREMIUM */
 
-window.banUser = ()=>{
-let uid = prompt("Nhập UID người cần BAN:");
-if(!uid) return;
-
-set(ref(db,"users/"+uid+"/banned"),true);
-alert("Đã BAN UID: "+uid);
-};
-
-window.kickUser = ()=>{
-let uid = prompt("Nhập UID người cần KICK:");
-if(!uid) return;
-
-remove(ref(db,"users/"+uid));
-alert("Đã XÓA USER: "+uid);
+window.buyPremium=()=>{
+set(ref(db,"users/"+auth.currentUser.uid+"/premium"),true);
+alert("Đã kích hoạt Premium!");
 };
 
 </script>
