@@ -1,286 +1,239 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Tuyển Dụng</title>
-
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tuyển Dụng - Vietnam On Top</title>
 
 <style>
 body{
-  margin:0;
-  font-family:Segoe UI,Arial;
-  background:linear-gradient(180deg,#000,#0a0a0a);
-  color:white;
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#000;
+    color:white;
 }
 
-/* HEADER */
-.header{
-  background:#0f0f0f;
-  padding:25px;
-  text-align:center;
-  font-size:24px;
-  font-weight:bold;
-  position:relative;
-  letter-spacing:1px;
-  border-bottom:1px solid #222;
+header{
+    background:#000;
+    padding:20px;
+    text-align:center;
+    font-size:22px;
+    font-weight:bold;
+    position:relative;
+    border-bottom:1px solid #222;
 }
 
-/* MENU */
-.menu-icon{
-  position:absolute;
-  right:25px;
-  top:22px;
-  font-size:30px;
-  cursor:pointer;
-  transition:0.3s;
-}
-
-.menu-icon:hover{
-  transform:scale(1.1);
+.menu-btn{
+    position:absolute;
+    right:20px;
+    top:25px;
+    cursor:pointer;
+    font-size:26px;
 }
 
 .dropdown{
-  display:none;
-  position:absolute;
-  right:25px;
-  top:70px;
-  background:#111;
-  border-radius:8px;
-  box-shadow:0 0 20px rgba(0,191,255,0.3);
-  overflow:hidden;
+    display:none;
+    position:absolute;
+    right:20px;
+    top:70px;
+    background:#111;
+    padding:10px;
+    border-radius:8px;
 }
 
-.dropdown div{
-  padding:12px 20px;
-  cursor:pointer;
-  transition:0.3s;
+.dropdown a{
+    color:white;
+    text-decoration:none;
+    display:block;
+    padding:5px 10px;
 }
 
-.dropdown div:hover{
-  background:#00bfff;
-  color:black;
+.container{
+    display:flex;
+    justify-content:center;
+    margin-top:50px;
 }
 
-/* FORM */
-.form-container{
-  width:650px;
-  max-width:92%;
-  margin:60px auto;
-  background:#111;
-  padding:40px;
-  border-radius:20px;
-  box-shadow:0 0 40px rgba(0,191,255,0.15);
-  transition:0.3s;
+.form-box{
+    background:#111;
+    padding:40px;
+    width:500px;
+    border-radius:15px;
+    box-shadow:0 0 20px rgba(0,255,255,0.2);
 }
 
-.form-container:hover{
-  box-shadow:0 0 60px rgba(0,191,255,0.25);
+.form-box h2{
+    text-align:center;
 }
 
-input, textarea{
-  width:100%;
-  padding:14px;
-  margin-bottom:18px;
-  background:#1a1a1a;
-  border:1px solid #333;
-  border-radius:10px;
-  color:white;
-  font-size:16px;
-  transition:0.3s;
+.form-box input,
+.form-box textarea{
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    background:#222;
+    border:none;
+    border-radius:8px;
+    color:white;
 }
 
-input:focus, textarea:focus{
-  border-color:#00bfff;
-  outline:none;
-  box-shadow:0 0 10px rgba(0,191,255,0.4);
+.form-box button{
+    width:100%;
+    padding:15px;
+    background:#00bcd4;
+    border:none;
+    border-radius:8px;
+    font-size:16px;
+    cursor:pointer;
 }
 
-button{
-  width:100%;
-  padding:14px;
-  background:#00bfff;
-  border:none;
-  border-radius:12px;
-  font-size:16px;
-  font-weight:bold;
-  cursor:pointer;
-  transition:0.3s;
+#policy{
+    margin:60px auto;
+    width:80%;
+    background:#111;
+    padding:30px;
+    border-radius:15px;
 }
-
-button:hover{
-  background:#009acd;
-  box-shadow:0 0 20px rgba(0,191,255,0.6);
+.admin-panel{
+    margin:50px auto;
+    width:80%;
 }
-
-/* ADMIN PANEL */
-#adminPanel{
-  width:900px;
-  max-width:95%;
-  margin:40px auto;
+.application-item{
+    background:#111;
+    padding:20px;
+    margin-bottom:15px;
+    border-radius:10px;
 }
-
-.admin-card{
-  background:#111;
-  padding:20px;
-  margin-bottom:20px;
-  border-radius:15px;
-  border:1px solid #222;
-  transition:0.3s;
-}
-
-.admin-card:hover{
-  border-color:#00bfff;
-  box-shadow:0 0 20px rgba(0,191,255,0.3);
-}
-
-/* POLICY */
-.policy{
-  width:900px;
-  max-width:95%;
-  margin:80px auto;
-  background:#111;
-  padding:40px;
-  border-radius:20px;
-  border:1px solid #222;
-}
-
-.policy h2{
-  text-align:center;
-  margin-bottom:30px;
+.delete-btn{
+    background:red;
+    border:none;
+    padding:8px 12px;
+    color:white;
+    border-radius:5px;
+    cursor:pointer;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">
+<header>
 TRANG TUYỂN DỤNG NHÂN SỰ CHÍNH THỨC CỦA ỨNG DỤNG VIETNAM ON TOP
-<div class="menu-icon" onclick="toggleMenu()">☰</div>
+<div class="menu-btn" onclick="toggleMenu()">☰</div>
 
-<div class="dropdown" id="menu">
-  <div onclick="goPolicy()">Chính Sách Tuyển Dụng</div>
+<div class="dropdown" id="dropdown">
+<a href="#policy">Chính Sách Tuyển Dụng</a>
 </div>
-</div>
+</header>
 
-<div class="form-container" id="userForm">
-<h2 style="text-align:center;margin-bottom:30px;">Nộp Đơn Tuyển Dụng</h2>
-
-<input id="name" placeholder="Họ tên">
-<input id="age" placeholder="Tuổi">
-<input id="contact" placeholder="Liên hệ">
-<input id="exp" placeholder="Kinh nghiệm">
+<!-- FORM -->
+<div class="container" id="formSection">
+<div class="form-box">
+<h2>Nộp Đơn Tuyển Dụng</h2>
+<input type="text" id="name" placeholder="Họ tên">
+<input type="number" id="age" placeholder="Tuổi">
+<input type="text" id="contact" placeholder="Liên hệ">
+<textarea id="experience" placeholder="Kinh nghiệm"></textarea>
 <textarea id="reason" placeholder="Lý do ứng tuyển"></textarea>
-
-<button onclick="submitApplication()">Gửi đơn</button>
+<button onclick="submitForm()">Gửi đơn</button>
+</div>
 </div>
 
-<div id="adminPanel" style="display:none;">
-<h2 style="text-align:center;">Quản Lý Hồ Sơ (Admin)</h2>
-<div id="list"></div>
+<!-- ADMIN PANEL -->
+<div class="admin-panel" id="adminPanel" style="display:none;">
+<h2>QUẢN LÝ HỒ SƠ ỨNG TUYỂN</h2>
+<div id="applicationList"></div>
 </div>
 
-<div class="policy" id="policySection">
+<!-- CHÍNH SÁCH -->
+<div id="policy">
 <h2>Chính Sách Tuyển Dụng</h2>
-<p>
-• Ứng viên phải cung cấp thông tin chính xác và trung thực.<br><br>
-• Không chấp nhận hành vi giả mạo danh tính hoặc gian lận.<br><br>
-• Ban quản trị có toàn quyền quyết định duyệt hoặc từ chối hồ sơ.<br><br>
-• Sau khi được duyệt, nhân sự phải tuân thủ nội quy của Vietnam On Top.<br><br>
-• Vi phạm nội quy có thể bị thu hồi quyền staff ngay lập tức.
-</p>
+<ul>
+<li>Ứng viên phải cung cấp thông tin chính xác và trung thực.</li>
+<li>Không chấp nhận hành vi giả mạo danh tính hoặc gian lận.</li>
+<li>Ban quản trị có quyền từ chối hồ sơ không đạt yêu cầu.</li>
+<li>Mọi thông tin sẽ được bảo mật.</li>
+</ul>
 </div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
 <script>
-const firebaseConfig = {
-  apiKey:"API_KEY",
-  authDomain:"PROJECT_ID.firebaseapp.com",
-  databaseURL:"https://PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId:"PROJECT_ID"
+// ==== CONFIG CỦA MÀY ====
+var firebaseConfig = {
+  apiKey: "AIzaSyCvKaa4S4icydrj2JYA5ch0ckGC_mT0bvc",
+  authDomain: "vietnamontop-77401.firebaseapp.com",
+  projectId: "vietnamontop-77401",
 };
-
 firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth();
-const db=firebase.database();
 
-const ADMIN_UID="o4WlbBoDRbPOTvbg69juPM7Iq0s1";
+const db = firebase.firestore();
+const ADMIN_UID = "o4WlbBoDRbPOTvbg69juPM7Iq0s1";
 
-/* MENU */
+// MENU
 function toggleMenu(){
-  const m=document.getElementById("menu");
-  m.style.display=m.style.display==="block"?"none":"block";
-}
-function goPolicy(){
-  document.getElementById("policySection").scrollIntoView({behavior:"smooth"});
-  document.getElementById("menu").style.display="none";
+  const d = document.getElementById("dropdown");
+  d.style.display = d.style.display === "block" ? "none" : "block";
 }
 
-/* ADMIN CHECK */
-auth.onAuthStateChanged(user=>{
+// SUBMIT
+function submitForm(){
+  const name = document.getElementById("name").value;
+  const age = document.getElementById("age").value;
+  const contact = document.getElementById("contact").value;
+  const experience = document.getElementById("experience").value;
+  const reason = document.getElementById("reason").value;
+
+  db.collection("applications").add({
+    name, age, contact, experience, reason,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  alert("Đã gửi đơn!");
+}
+
+// CHECK LOGIN & ADMIN
+firebase.auth().onAuthStateChanged(user=>{
   if(!user){
-    document.getElementById("userForm").style.display="none";
     alert("Vui lòng đăng nhập.");
+    window.location.href="index.html";
     return;
   }
-  if(user.uid===ADMIN_UID){
+
+  if(user.uid === ADMIN_UID){
+    document.getElementById("formSection").style.display="none";
     document.getElementById("adminPanel").style.display="block";
     loadApplications();
   }
 });
 
-/* USER SUBMIT */
-function submitApplication(){
-  const user=auth.currentUser;
-  if(!user){alert("Vui lòng đăng nhập trước");return;}
-
-  db.ref("applications").push({
-    uid:user.uid,
-    name:name.value,
-    age:age.value,
-    contact:contact.value,
-    exp:exp.value,
-    reason:reason.value,
-    status:"pending",
-    createdAt:Date.now()
-  });
-
-  alert("Đã gửi đơn thành công");
-}
-
-/* ADMIN LOAD */
+// LOAD HỒ SƠ
 function loadApplications(){
-  db.ref("applications").on("value",snap=>{
-    const list=document.getElementById("list");
+  db.collection("applications").orderBy("createdAt","desc")
+  .onSnapshot(snapshot=>{
+    const list = document.getElementById("applicationList");
     list.innerHTML="";
-    snap.forEach(child=>{
-      const d=child.val();
-      const k=child.key;
-      list.innerHTML+=`
-      <div class="admin-card">
-      <b>${d.name}</b><br>
-      Tuổi: ${d.age}<br>
-      Liên hệ: ${d.contact}<br>
-      Kinh nghiệm: ${d.exp}<br>
-      Lý do: ${d.reason}<br><br>
-      <button onclick="approve('${k}','${d.uid}')">Duyệt</button>
-      <button onclick="removeApp('${k}','${d.uid}')">Xoá</button>
-      </div>`;
+    snapshot.forEach(doc=>{
+      const data = doc.data();
+      list.innerHTML += `
+        <div class="application-item">
+          <p><b>Họ tên:</b> ${data.name}</p>
+          <p><b>Tuổi:</b> ${data.age}</p>
+          <p><b>Liên hệ:</b> ${data.contact}</p>
+          <p><b>Kinh nghiệm:</b> ${data.experience}</p>
+          <p><b>Lý do:</b> ${data.reason}</p>
+          <button class="delete-btn" onclick="deleteApp('${doc.id}')">Xóa</button>
+        </div>
+      `;
     });
   });
 }
 
-/* ADMIN ACTION */
-function approve(k,u){
-  db.ref("staffList/"+u).set(true);
-  db.ref("applications/"+k).remove();
-  alert("Đã duyệt & cấp ⚙️");
-}
-function removeApp(k,u){
-  db.ref("staffList/"+u).remove();
-  db.ref("applications/"+k).remove();
-  alert("Đã xoá hồ sơ");
+function deleteApp(id){
+  db.collection("applications").doc(id).delete();
 }
 </script>
 
