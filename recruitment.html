@@ -2,300 +2,226 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Tuyển Dụng - Vietnam On Top</title>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<title>Staff Recruitment</title>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0f0f0f;
-  color:white;
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0e0f13;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
-/* MENU */
-#menuBtn{
-  position:fixed;
-  top:15px;
-  left:15px;
-  font-size:28px;
-  cursor:pointer;
-  z-index:1001;
+header {
+  background: #181a20;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-#sidebar{
-  position:fixed;
-  left:-260px;
-  top:0;
-  width:260px;
-  height:100%;
-  background:#111;
-  padding:20px;
-  transition:0.3s;
-  z-index:1000;
+.logo {
+  font-size: 20px;
+  font-weight: bold;
 }
 
-#sidebar a{
-  display:block;
-  color:white;
-  text-decoration:none;
-  margin:15px 0;
+.menu-btn {
+  font-size: 26px;
+  cursor: pointer;
 }
 
-#overlay{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.6);
-  display:none;
-  z-index:999;
+.main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* CONTAINER */
-.container{
-  max-width:1000px;
-  margin:auto;
-  padding:60px 20px;
+.form-box {
+  width: 520px;
+  background: #1c1f26;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 0 25px rgba(0,0,0,0.6);
 }
 
-input,textarea{
-  width:100%;
-  padding:10px;
-  margin-bottom:10px;
-  border-radius:6px;
-  border:none;
+.form-box h2 {
+  margin-top: 0;
+  text-align: center;
 }
 
-button{
-  padding:8px 14px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
+textarea {
+  width: 100%;
+  height: 140px;
+  background: #111318;
+  border: 1px solid #2a2d36;
+  color: white;
+  padding: 10px;
+  resize: none;
+  font-size: 14px;
 }
 
-.submitBtn{ background:cyan; }
-.approveBtn{ background:green; color:white; }
-
-.statBox{
-  flex:1;
-  background:#1b1b1b;
-  padding:15px;
-  border-radius:10px;
-  text-align:center;
+button {
+  margin-top: 15px;
+  padding: 12px;
+  width: 100%;
+  background: #e11d48;
+  border: none;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
 }
 
-.dashboardRow{
-  display:flex;
-  gap:15px;
-  margin:20px 0;
+button:hover {
+  background: #be123c;
 }
 
-.card{
-  background:#1b1b1b;
-  padding:15px;
-  margin-bottom:15px;
-  border-radius:10px;
-  border-left:4px solid cyan;
+.status-box {
+  margin-top: 20px;
+  background: #111318;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 14px;
 }
 
-/* POLICY */
-#policyModal{
-  position:fixed;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  width:80%;
-  max-height:80%;
-  overflow-y:auto;
-  background:#1b1b1b;
-  padding:25px;
-  border-radius:10px;
-  display:none;
-  z-index:2000;
+.policy-panel {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 80%;
+  height: 100%;
+  background: #1c1f26;
+  padding: 20px;
+  overflow-y: auto;
+  transition: 0.4s;
+}
+
+.policy-panel.active {
+  left: 0;
+}
+
+.close-btn {
+  font-size: 20px;
+  cursor: pointer;
+  margin-bottom: 15px;
 }
 </style>
 </head>
+
 <body>
 
-<div id="menuBtn" onclick="toggleMenu()">☰</div>
+<header>
+  <div class="logo">STAFF RECRUITMENT</div>
+  <div class="menu-btn" onclick="openPolicy()">☰</div>
+</header>
 
-<div id="sidebar">
-  <h3>Vietnam On Top</h3>
-  <a href="./index.html">Trang Chủ</a>
-  <a href="#" onclick="openPolicy()">Chính Sách Tuyển Dụng</a>
+<div class="policy-panel" id="policyPanel">
+  <div class="close-btn" onclick="closePolicy()">✖ Close</div>
+  <h2>Recruitment Policy</h2>
+  <p>
+  By submitting an application, you agree to the following policies:
+  <br><br>
+  1. Applicants must be mature, responsible, and respectful toward the community.
+  <br><br>
+  2. Any abuse of staff permissions will result in permanent removal.
+  <br><br>
+  3. Staff members must maintain confidentiality of system data and internal tools.
+  <br><br>
+  4. Exploiting bugs, bypassing security layers, or attempting unauthorized access will lead to immediate ban.
+  <br><br>
+  5. Staff are required to remain active and assist users daily.
+  <br><br>
+  6. Administrators reserve the right to reject any application without explanation.
+  <br><br>
+  7. Providing false information will permanently disqualify the applicant.
+  <br><br>
+  8. Policies may change at any time without prior notice.
+  <br><br>
+  9. Final decision belongs to the system administrator.
+  <br><br>
+  10. By clicking submit, you confirm you fully accept all rules and consequences.
+  </p>
 </div>
 
-<div id="overlay" onclick="toggleMenu()"></div>
-
-<div class="container">
-
-<h2>TRANG TUYỂN DỤNG NHÂN SỰ CHÍNH THỨC</h2>
-
-<!-- FORM -->
-<div id="formSection">
-  <input type="text" id="name" placeholder="Họ và tên">
-  <input type="email" id="email" placeholder="Email">
-  <textarea id="reason" placeholder="Lý do ứng tuyển"></textarea>
-  <button class="submitBtn" onclick="submitApplication()">Gửi Hồ Sơ</button>
-</div>
-
-<!-- ADMIN -->
-<div id="adminPanel" style="display:none;">
-  <h2>📊 Dashboard Quản Lý</h2>
-
-  <div class="dashboardRow">
-    <div class="statBox">
-      <h3 id="totalCount">0</h3>
-      <p>Tổng hồ sơ</p>
-    </div>
-    <div class="statBox">
-      <h3 id="approvedCount">0</h3>
-      <p>Đã duyệt</p>
-    </div>
-    <div class="statBox">
-      <h3 id="pendingCount">0</h3>
-      <p>Chờ duyệt</p>
-    </div>
+<div class="main">
+  <div class="form-box">
+    <h2>Apply for Staff</h2>
+    <textarea id="content" placeholder="Write your application here..."></textarea>
+    <button onclick="sendApplication()">SUBMIT APPLICATION</button>
+    <div class="status-box" id="myStatus"></div>
   </div>
-
-  <div id="applicationsList"></div>
 </div>
 
-</div>
-
-<!-- POLICY MODAL -->
-<div id="policyModal">
-<h2>CHÍNH SÁCH TUYỂN DỤNG</h2>
-
-<p><b>1. Tiêu chuẩn ứng viên</b></p>
-<p>Ứng viên phải cung cấp thông tin chính xác, trung thực và đầy đủ. Bất kỳ hành vi gian lận nào đều có thể dẫn đến loại bỏ ngay lập tức.</p>
-
-<p><b>2. Hành vi chuyên nghiệp</b></p>
-<p>Thành viên phải duy trì thái độ tôn trọng, không gây xung đột, không phát ngôn tiêu cực ảnh hưởng đến cộng đồng.</p>
-
-<p><b>3. Bảo mật thông tin</b></p>
-<p>Thông tin nội bộ và dữ liệu người dùng phải được bảo mật tuyệt đối. Nghiêm cấm chia sẻ ra bên ngoài.</p>
-
-<p><b>4. Trách nhiệm & Cam kết</b></p>
-<p>Thành viên được tuyển chọn phải cam kết đóng góp tích cực và tuân thủ mọi quy định nội bộ.</p>
-
-<p><b>5. Quyền quyết định</b></p>
-<p>Vietnam On Top có toàn quyền chấp thuận hoặc từ chối bất kỳ hồ sơ nào mà không bắt buộc phải cung cấp lý do chi tiết.</p>
-
-<p><b>6. Kỷ luật</b></p>
-<p>Vi phạm quy định có thể dẫn đến cảnh cáo, tạm đình chỉ hoặc chấm dứt quyền tham gia.</p>
-
-<br>
-<button onclick="closePolicy()">Đóng</button>
-</div>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyCvKaa4S4icydrj2JYA5ch0ckGC_mT0bvc",
   authDomain: "vietnamontop-77401.firebaseapp.com",
+  databaseURL: "https://vietnamontop-77401-default-rtdb.firebaseio.com",
   projectId: "vietnamontop-77401"
 };
 
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const ADMIN_UID = "o4WlbBoDRbPOTvbg69juPM7Iq0s1";
 
-firebase.auth().onAuthStateChanged(user=>{
-  if(!user){
-    window.location.href="/";
+const auth = firebase.auth();
+const db = firebase.database();
+
+function openPolicy() {
+  document.getElementById("policyPanel").classList.add("active");
+}
+
+function closePolicy() {
+  document.getElementById("policyPanel").classList.remove("active");
+}
+
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    document.querySelector(".form-box").innerHTML = "Please login first.";
     return;
   }
 
-  if(user.uid === ADMIN_UID){
-    document.getElementById("formSection").style.display="none";
-    document.getElementById("adminPanel").style.display="block";
-    loadApplications();
-  }
+  const userRef = db.ref("recruitment/" + user.uid);
+
+  userRef.on("value", snap => {
+    if (snap.exists()) {
+      const data = snap.val();
+      document.getElementById("myStatus").innerHTML =
+        "Application Status: <b>" + data.status + "</b>";
+    }
+  });
 });
 
-function submitApplication(){
-  const name = document.getElementById("name").value;
-  const email = document.getElementById("email").value;
-  const reason = document.getElementById("reason").value;
+function sendApplication() {
+  const user = auth.currentUser;
+  const content = document.getElementById("content").value;
 
-  if(!name || !email || !reason){
-    alert("Vui lòng nhập đầy đủ thông tin.");
-    return;
-  }
+  if (!user) return alert("Login required.");
+  if (!content) return alert("Please write your application.");
 
-  db.collection("applications").add({
-    name:name,
-    email:email,
-    reason:reason,
-    status:"pending",
-    createdAt:firebase.firestore.FieldValue.serverTimestamp()
-  }).then(()=>{
-    alert("Gửi hồ sơ thành công!");
+  const userRef = db.ref("recruitment/" + user.uid);
+
+  userRef.once("value").then(snap => {
+    if (snap.exists()) {
+      alert("You have already submitted an application.");
+    } else {
+      userRef.set({
+        uid: user.uid,
+        email: user.email,
+        content: content,
+        status: "pending",
+        createdAt: Date.now()
+      });
+      alert("Application submitted!");
+    }
   });
-}
-
-function loadApplications(){
-  db.collection("applications")
-  .orderBy("createdAt","desc")
-  .onSnapshot(snapshot=>{
-
-    const list = document.getElementById("applicationsList");
-    list.innerHTML="";
-
-    let total=0, approved=0, pending=0;
-
-    snapshot.forEach(doc=>{
-      total++;
-      const data = doc.data();
-      if(data.status==="approved"){ approved++; } else { pending++; }
-
-      list.innerHTML += `
-        <div class="card">
-          <b>${data.name}</b><br>
-          Email: ${data.email}<br>
-          Lý do: ${data.reason}<br>
-          Trạng thái: ${data.status}<br><br>
-          <button class="approveBtn" onclick="approve('${doc.id}')">Duyệt</button>
-        </div>
-      `;
-    });
-
-    document.getElementById("totalCount").innerText=total;
-    document.getElementById("approvedCount").innerText=approved;
-    document.getElementById("pendingCount").innerText=pending;
-  });
-}
-
-function approve(id){
-  db.collection("applications").doc(id).update({status:"approved"});
-}
-
-/* MENU */
-function toggleMenu(){
-  const sidebar=document.getElementById("sidebar");
-  const overlay=document.getElementById("overlay");
-
-  if(sidebar.style.left==="0px"){
-    sidebar.style.left="-260px";
-    overlay.style.display="none";
-  }else{
-    sidebar.style.left="0px";
-    overlay.style.display="block";
-  }
-}
-
-function openPolicy(){
-  document.getElementById("policyModal").style.display="block";
-  toggleMenu();
-}
-
-function closePolicy(){
-  document.getElementById("policyModal").style.display="none";
 }
 </script>
 
