@@ -1,105 +1,151 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Tuyển Dụng</title>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+<meta charset="UTF-8">
+<title>Recruitment Admin Panel</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0e0f13;
+  color: white;
+}
+
+header {
+  background: #181a20;
+  padding: 15px 20px;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.container {
+  padding: 20px;
+  max-width: 900px;
+  margin: auto;
+}
+
+.card {
+  background: #1c1f26;
+  padding: 20px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+}
+
+.card p {
+  margin: 6px 0;
+}
+
+.status {
+  font-weight: bold;
+}
+
+button {
+  margin-top: 10px;
+  margin-right: 5px;
+  padding: 8px 12px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  color: white;
+}
+
+.approve { background: #16a34a; }
+.reject  { background: #dc2626; }
+.delete  { background: #6b7280; }
+
+.approve:hover { background: #15803d; }
+.reject:hover  { background: #b91c1c; }
+.delete:hover  { background: #4b5563; }
+
+.denied {
+  text-align: center;
+  margin-top: 50px;
+  font-size: 20px;
+  color: red;
+}
+</style>
 </head>
+
 <body>
 
-<h2>Danh sách ứng viên</h2>
-<div id="list"></div>
+<header>Recruitment Admin Panel</header>
+<div class="container" id="content"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
 const firebaseConfig = {
-  apiKey: "API_KEY",
-  authDomain: "PROJECT_ID.firebaseapp.com",
-  databaseURL: "https://PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId: "PROJECT_ID"
+  apiKey: "AIzaSyCvKaa4S4icydrj2JYA5ch0ckGC_mT0bvc",
+  authDomain: "vietnamontop-77401.firebaseapp.com",
+  databaseURL: "https://vietnamontop-77401-default-rtdb.firebaseio.com",
+  projectId: "vietnamontop-77401"
 };
 
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.database();
 
 const ADMIN_UID = "o4WlbBoDRbPOTvbg69juPM7Iq0s1";
 
-/* =========================
-   CHỈ ADMIN ĐƯỢC TRUY CẬP
-========================= */
+const auth = firebase.auth();
+const db = firebase.database();
+
 auth.onAuthStateChanged(user => {
 
   if (!user || user.uid !== ADMIN_UID) {
-    alert("Không có quyền truy cập");
-    window.location.href = "/";
+    document.body.innerHTML = "<div class='denied'>ACCESS DENIED</div>";
     return;
   }
 
-  loadApplications();
-});
+  db.ref("recruitment").on("value", snapshot => {
 
-/* =========================
-   LOAD DANH SÁCH HỒ SƠ
-========================= */
-function loadApplications() {
+    const container = document.getElementById("content");
+    container.innerHTML = "";
 
-  db.ref("applications").on("value", snapshot => {
-
-    const list = document.getElementById("list");
-    list.innerHTML = "";
+    if (!snapshot.exists()) {
+      container.innerHTML = "No applications yet.";
+      return;
+    }
 
     snapshot.forEach(child => {
-
+      const id = child.key;
       const data = child.val();
-      const key = child.key;
 
-      list.innerHTML += `
-        <div style="border:1px solid black;padding:10px;margin-bottom:10px;">
-          <b>${data.name}</b><br>
-          Tuổi: ${data.age}<br>
-          Liên hệ: ${data.contact}<br>
-          Kinh nghiệm: ${data.exp}<br>
-          Lý do: ${data.reason}<br>
-          Trạng thái: ${data.status}<br><br>
-          <button onclick="approve('${key}', '${data.uid}')">Duyệt</button>
-          <button onclick="removeApp('${key}', '${data.uid}')">Xoá</button>
-        </div>
+      const div = document.createElement("div");
+      div.className = "card";
+
+      div.innerHTML = `
+        <p><b>UID:</b> ${data.uid}</p>
+        <p><b>Email:</b> ${data.email}</p>
+        <p><b>Application:</b><br>${data.content}</p>
+        <p class="status">Status: ${data.status}</p>
+        <button class="approve" onclick="approve('${id}')">APPROVE</button>
+        <button class="reject" onclick="reject('${id}')">REJECT</button>
+        <button class="delete" onclick="removeApp('${id}')">DELETE</button>
       `;
+
+      container.appendChild(div);
     });
 
   });
+
+});
+
+function approve(id) {
+  db.ref("recruitment/" + id).update({ status: "approved" });
 }
 
-/* =========================
-   DUYỆT → THÊM staffList
-========================= */
-function approve(key, uid) {
-
-  // Thêm UID vào staffList
-  db.ref("staffList/" + uid).set(true);
-
-  // Xoá hồ sơ khỏi danh sách
-  db.ref("applications/" + key).remove();
-
-  alert("Đã duyệt & cấp quyền ⚙️");
+function reject(id) {
+  db.ref("recruitment/" + id).update({ status: "rejected" });
 }
 
-/* =========================
-   XOÁ HỒ SƠ
-========================= */
-function removeApp(key, uid) {
-
-  // Gỡ staff nếu có
-  db.ref("staffList/" + uid).remove();
-
-  // Xoá hồ sơ
-  db.ref("applications/" + key).remove();
-
-  alert("Đã xoá hồ sơ");
+function removeApp(id) {
+  if (confirm("Delete this application?")) {
+    db.ref("recruitment/" + id).remove();
+  }
 }
-
 </script>
 
 </body>
