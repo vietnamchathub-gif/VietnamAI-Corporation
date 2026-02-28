@@ -85,13 +85,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-  setPersistence(auth, browserLocalPersistence)
-  .then(() => {
-    console.log("Đã set LOCAL persistence");
-  })
-  .catch((error) => {
-    console.error("Lỗi persistence:", error);
-  });
 const db = getDatabase(app);
 
 let lastMessageTime = 0;
