@@ -151,6 +151,7 @@ onAuthStateChanged(auth, async(user)=>{
   if(user){
     authDiv.style.display="none";
     mainDiv.style.display="block";
+    loadChat();
 
     if(user.uid===ADMIN_UID){
       adminPanel.style.display="block";
