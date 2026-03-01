@@ -2,198 +2,276 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Vietnam On Top</title>
+<title>VietnamOnTop [BẢN CHÍNH THỨC]</title>
 
 <style>
-body{font-family:Arial;margin:0;background:#111;color:white}
-#auth,#main,#teamRoom{padding:20px}
-input,button,select{padding:8px;margin:5px}
-button{cursor:pointer}
-#chatBox{height:250px;overflow-y:auto;background:#222;padding:10px;margin-top:10px}
-.msg{margin:5px 0}
-#adminPanel{background:#222;padding:15px;margin-top:20px}
-#teamRoom{display:none}
-.teamTitle{font-size:30px;font-weight:bold;text-align:center}
-.dev{font-size:16px;text-align:center;margin-bottom:20px;color:gold}
-.profileBox{background:#222;padding:10px;margin-bottom:15px}
-.verified{
-  width:18px;
-  vertical-align:middle;
+body{margin:0;font-family:Arial;background:#111;color:white}
+.centerBox{
+position:absolute;top:50%;left:50%;
+transform:translate(-50%,-50%);
+width:420px;background:#1c1c1c;
+padding:30px;border-radius:12px;
+box-shadow:0 0 30px rgba(0,0,0,0.5)
 }
+input,select{
+width:100%;padding:10px;margin:8px 0;
+border-radius:8px;border:1px solid #333;
+background:#111;color:white
+}
+button{
+padding:10px;width:100%;margin-top:10px;
+border:none;border-radius:8px;
+background:#00c3ff;color:white;
+cursor:pointer
+}
+button:hover{background:#0099cc}
+#topBar{
+background:#000;padding:10px;
+display:flex;align-items:center
+}
+#menuBtn{font-size:22px;cursor:pointer;margin-right:10px}
+#sideMenu{
+position:fixed;left:-300px;top:0;
+width:300px;height:100%;
+background:#1a1a1a;padding:20px;
+overflow:auto;transition:0.3s
+}
+#chatBox{
+height:250px;overflow:auto;
+background:#1c1c1c;padding:10px;
+margin-top:10px
+}
+.verified{color:#00c3ff;font-weight:bold}
+.premium{color:gold}
 </style>
 </head>
 <body>
 
-<div id="auth">
+<div id="sideMenu">
+<h2>Chính sách & Điều khoản</h2>
+<p>
+VietnamOnTop cam kết xây dựng một môi trường cộng đồng lành mạnh,
+nghiêm túc và chuyên nghiệp. Người dùng phải tuân thủ mọi quy định.
+Mọi hành vi vi phạm sẽ dẫn đến khóa tài khoản vĩnh viễn hoặc tạm thời.
+Chúng tôi nghiêm cấm mọi hành vi sử dụng phần mềm bên thứ 3,
+can thiệp hệ thống, spam, lừa đảo hoặc phá hoại dữ liệu.
+VietnamOnTop có quyền chỉnh sửa, cập nhật chính sách bất cứ lúc nào.
+</p>
+</div>
+
+<div id="topBar">
+<div id="menuBtn">☰</div>
+<h2>VietnamOnTop [BẢN CHÍNH THỨC]</h2>
+</div>
+<p style="text-align:center">
+Developer/Management: Vietnam Chat Hub<br>
+<a href="https://discord.gg/yVUQmkQeAN" target="_blank" style="color:#00c3ff">
+Discord cộng đồng
+</a>
+</p>
+
+<div id="auth" class="centerBox">
 <h2>Đăng nhập / Đăng ký</h2>
-<input type="email" id="email" placeholder="Email"><br>
-<input type="password" id="password" placeholder="Password"><br>
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
 <button onclick="register()">Đăng ký</button>
 <button onclick="login()">Đăng nhập</button>
+<button onclick="resetPass()">Quên mật khẩu</button>
 </div>
 
-<div id="main" style="display:none;">
-
-<h2>Chọn Đội</h2>
+<div id="main" style="display:none;padding:20px">
+<h3>Chọn đội</h3>
 <select id="teamSelect"></select>
-<button onclick="enterTeam()">Vào Đội</button>
-
-</div>
-
-<div id="teamRoom">
-
-<div class="teamTitle">Vietnam On Top</div>
-<div class="dev">Developer: Vietnam Chat Hub</div>
-
-<button onclick="leaveTeam()">⬅ Back</button>
+<button onclick="enterTeam()">Vào đội</button>
 <button onclick="logout()">Đăng xuất</button>
 
-<div class="profileBox">
-<h3>Hồ sơ</h3>
-<div id="profileInfo"></div>
+<h3>Premium</h3>
+<select id="premiumPlan">
+<option value="basic">Basic - 30 ngày</option>
+<option value="pro">Pro - 90 ngày</option>
+<option value="vip">VIP - 365 ngày</option>
+</select>
+<button onclick="buyPremium()">Mua Premium</button>
 </div>
 
-<h3>Chat</h3>
+<div id="teamRoom" style="display:none;padding:20px">
+<h3>Phòng đội</h3>
+<div id="profile"></div>
 <div id="chatBox"></div>
 <input type="text" id="message" placeholder="Nhập tin nhắn">
 <button onclick="sendMessage()">Gửi</button>
 
-<div id="adminPanel" style="display:none;">
+<div id="adminPanel" style="display:none;background:#222;padding:10px;margin-top:20px">
 <h3>ADMIN PANEL</h3>
-<input type="text" id="banWord" placeholder="hack">
-<input type="text" id="banReason" placeholder="Lý do">
-<button onclick="setBan()">Lưu Auto Ban</button>
+<input type="text" id="banUid" placeholder="UID cần ban">
+<select id="banMonth">
+<option value="1">1 tháng</option>
+<option value="3">3 tháng</option>
+<option value="6">6 tháng</option>
+<option value="12">12 tháng</option>
+</select>
+<button onclick="banUser()">Ban</button>
+<button onclick="unbanUser()">Unban</button>
+<input type="text" id="banWord" placeholder="Từ cấm auto ban">
+<button onclick="setAutoBan()">Set Auto Ban</button>
 </div>
-
 </div>
 
 <script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+getAuth,createUserWithEmailAndPassword,
+signInWithEmailAndPassword,signOut,
+onAuthStateChanged,sendPasswordResetEmail,
+sendEmailVerification
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+getDatabase,ref,set,get,update,push,onValue
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged,setPersistence,browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getDatabase,ref,set,push,onValue,get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-const firebaseConfig = {
-apiKey:"AIzaSyCvKaa4S4icydrj2JYA5ch0ckGC_mT0bvc",
-authDomain:"vietnamontop-77401.firebaseapp.com",
-databaseURL:"https://vietnamontop-77401-default-rtdb.firebaseio.com",
-projectId:"vietnamontop-77401",
+/* GIỮ NGUYÊN CONFIG CỦA MÀY */
+const firebaseConfig={
+apiKey:"API_KEY",
+authDomain:"AUTHDOMAIN",
+databaseURL:"DATABASEURL",
+projectId:"PROJECT_ID",
+appId:"APP_ID"
 };
 
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
-await setPersistence(auth,browserLocalPersistence);
 const db=getDatabase(app);
 
-const ADMIN_UID="o4WlbBoDRbPOTvbg69juPM7Iq0s1";
-const DEVELOPER_UID="o4WlbBoDRbPOTvbg69juPM7Iq0s1";
+const ADMIN_UID="GIU_NGUYEN_ADMIN_UID";
+const Moderator_ID="MOD_UID";
+const Staff_ID="STAFF_UID";
 
-const authDiv=document.getElementById("auth");
-const mainDiv=document.getElementById("main");
-const teamRoom=document.getElementById("teamRoom");
 const teamSelect=document.getElementById("teamSelect");
-const chatBox=document.getElementById("chatBox");
-const profileInfo=document.getElementById("profileInfo");
-const adminPanel=document.getElementById("adminPanel");
-
-let currentTeam=null;
-
 for(let i=1;i<=500;i++){
-  const option=document.createElement("option");
-  option.value="Team "+i;
-  option.textContent="Team "+i;
-  teamSelect.appendChild(option);
+let o=document.createElement("option");
+o.text="Team "+i;
+teamSelect.add(o);
 }
+
+document.getElementById("menuBtn").onclick=()=>{
+let menu=document.getElementById("sideMenu");
+menu.style.left=menu.style.left==="0px"?"-300px":"0px";
+};
 
 window.register=async()=>{
-const email=document.getElementById("email").value;
-const password=document.getElementById("password").value;
-const userCred=await createUserWithEmailAndPassword(auth,email,password);
-const user=userCred.user;
-await set(ref(db,"users/"+user.uid),{
-email:user.email,
-role:user.uid===ADMIN_UID?"admin":"user"
+const email=email.value;
+const password=password.value;
+const user=await createUserWithEmailAndPassword(auth,email,password);
+await sendEmailVerification(user.user);
+
+await set(ref(db,"users/"+user.user.uid),{
+email:email,
+role:user.user.uid===ADMIN_UID?"admin":"user",
+premium:{type:null,expire:0},
+ban:{status:false,expire:0}
 });
-alert("Đăng ký thành công");
-}
+alert("Đăng ký thành công, kiểm tra email xác minh.");
+};
 
 window.login=async()=>{
-const email=document.getElementById("email").value;
-const password=document.getElementById("password").value;
-await signInWithEmailAndPassword(auth,email,password);
+await signInWithEmailAndPassword(auth,email.value,password.value);
+};
+
+window.logout=()=>signOut(auth);
+
+window.resetPass=()=>{
+sendPasswordResetEmail(auth,email.value);
+alert("Đã gửi email reset.");
+};
+
+onAuthStateChanged(auth,async(user)=>{
+if(user){
+let snap=await get(ref(db,"users/"+user.uid));
+let data=snap.val();
+
+if(data.ban.status && Date.now()<data.ban.expire){
+alert("Bạn đã vi phạm chính sách của ứng dụng VietnamOnTop\nChúng tôi nghi ngờ bạn đã sử dụng phần mềm thứ 3 để tấn công vào hệ thống bảo mật của ứng dụng.");
+signOut(auth);
+return;
 }
 
-window.logout=async()=>{await signOut(auth);}
+document.getElementById("auth").style.display="none";
+document.getElementById("main").style.display="block";
 
-onAuthStateChanged(auth,(user)=>{
-if(user){
-authDiv.style.display="none";
-mainDiv.style.display="block";
 }else{
-authDiv.style.display="block";
-mainDiv.style.display="none";
-teamRoom.style.display="none";
+document.getElementById("auth").style.display="block";
+document.getElementById("main").style.display="none";
 }
 });
 
 window.enterTeam=()=>{
-currentTeam=teamSelect.value;
-mainDiv.style.display="none";
-teamRoom.style.display="block";
-loadProfile();
+document.getElementById("main").style.display="none";
+document.getElementById("teamRoom").style.display="block";
+
+let user=auth.currentUser;
+let profile=document.getElementById("profile");
+profile.innerHTML="UID: "+user.uid+
+(user.uid===ADMIN_UID?" <span class='verified'>✔</span>":"");
+
 loadChat();
-}
-
-window.leaveTeam=()=>{
-teamRoom.style.display="none";
-mainDiv.style.display="block";
-chatBox.innerHTML="";
-}
-
-function loadProfile(){
-const user=auth.currentUser;
-profileInfo.innerHTML="";
-let html=`ID: ${user.uid}<br>Email: ${user.email}`;
-
-if(user.uid===ADMIN_UID || user.uid===DEVELOPER_UID){
-html+=` <img class="verified" src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Twitter_Verified_Badge.svg">`;
-adminPanel.style.display="block";
-}
-
-profileInfo.innerHTML=html;
-}
+};
 
 function loadChat(){
-onValue(ref(db,"teams/"+currentTeam+"/chat"),(snapshot)=>{
+onValue(ref(db,"teams/"+teamSelect.value+"/chat"),(snap)=>{
 chatBox.innerHTML="";
-snapshot.forEach(child=>{
-const msg=child.val();
-const div=document.createElement("div");
-div.textContent=msg.email+": "+msg.text;
-chatBox.appendChild(div);
+snap.forEach(c=>{
+let d=c.val();
+chatBox.innerHTML+=`<div>${d.uid}: ${d.text}</div>`;
 });
-chatBox.scrollTop=chatBox.scrollHeight;
 });
 }
 
 window.sendMessage=async()=>{
-const user=auth.currentUser;
-const text=document.getElementById("message").value;
-if(!text)return;
-await push(ref(db,"teams/"+currentTeam+"/chat"),{
-email:user.email,
+let text=message.value;
+let auto=await get(ref(db,"autoBan"));
+if(auto.exists() && text.includes(auto.val().word)){
+alert("Bạn đã vi phạm chính sách của ứng dụng VietnamOnTop");
+signOut(auth);
+return;
+}
+
+push(ref(db,"teams/"+teamSelect.value+"/chat"),{
+uid:auth.currentUser.uid,
 text:text
 });
-document.getElementById("message").value="";
-}
+message.value="";
+};
 
-window.setBan=async()=>{
-const word=document.getElementById("banWord").value;
-const reason=document.getElementById("banReason").value;
-await set(ref(db,"autoBan"),{word,reason});
-alert("Saved");
-}
+window.setAutoBan=()=>{
+set(ref(db,"autoBan"),{word:banWord.value});
+};
 
+window.banUser=async()=>{
+let month=parseInt(banMonth.value);
+let expire=Date.now()+month*30*24*60*60*1000;
+await update(ref(db,"users/"+banUid.value+"/ban"),{
+status:true,
+expire:expire
+});
+};
+
+window.unbanUser=async()=>{
+await update(ref(db,"users/"+banUid.value+"/ban"),{
+status:false,
+expire:0
+});
+};
+
+window.buyPremium=async()=>{
+let type=premiumPlan.value;
+let days=type==="basic"?30:type==="pro"?90:365;
+let expire=Date.now()+days*24*60*60*1000;
+await update(ref(db,"users/"+auth.currentUser.uid+"/premium"),{
+type:type,
+expire:expire
+});
+alert("Mua premium thành công");
+};
 </script>
 </body>
 </html>
