@@ -202,24 +202,39 @@ alert(error.message);
 }
 };
 
-onAuthStateChanged(auth,async(user)=>{
-if(user){
-let snap=await get(ref(db,"users/"+user.uid));
-let data=snap.val();
+onAuthStateChanged(auth, async (user) => {
 
-if(data.ban.status && Date.now()<data.ban.expire){
+if (!user) {
+document.getElementById("auth").style.display="block";
+document.getElementById("main").style.display="none";
+return;
+}
+
+try {
+
+const snap = await get(ref(db,"users/"+user.uid));
+
+if (!snap.exists()) {
+alert("User có trong Authentication nhưng không có trong Database.");
+await signOut(auth);
+return;
+}
+
+const data = snap.val();
+
+if (data.ban?.status && Date.now() < data.ban?.expire) {
 alert("Bạn đã vi phạm chính sách của ứng dụng VietnamOnTop\nChúng tôi nghi ngờ bạn đã sử dụng phần mềm thứ 3 để tấn công vào hệ thống bảo mật của ứng dụng.");
-signOut(auth);
+await signOut(auth);
 return;
 }
 
 document.getElementById("auth").style.display="none";
 document.getElementById("main").style.display="block";
 
-}else{
-document.getElementById("auth").style.display="block";
-document.getElementById("main").style.display="none";
+} catch (err) {
+alert("Lỗi Database: " + err.message);
 }
+
 });
 
 window.enterTeam=()=>{
