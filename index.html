@@ -250,10 +250,15 @@ return;
 
 const data = snap.val();
 
-if (data.ban?.status && Date.now() < data.ban?.expire) {
-alert("Bạn đã vi phạm chính sách của ứng dụng VietnamOnTop\nChúng tôi nghi ngờ bạn đã sử dụng phần mềm thứ 3 để tấn công vào hệ thống bảo mật của ứng dụng.");
-await signOut(auth);
-return;
+if (
+   data.ban &&
+   data.ban.status === true &&
+   typeof data.ban.expire === "number" &&
+   Date.now() < data.ban.expire
+) {
+   alert("Bạn đã vi phạm chính sách.");
+   await signOut(auth);
+   return;
 }
 
 document.getElementById("auth").style.display="none";
