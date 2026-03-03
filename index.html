@@ -250,15 +250,19 @@ return;
 
 const data = snap.val();
 
-if (
-   data.ban &&
-   data.ban.status === true &&
-   typeof data.ban.expire === "number" &&
-   Date.now() < data.ban.expire
-) {
-   alert("Bạn đã vi phạm chính sách.");
-   await signOut(auth);
-   return;
+if (user.uid !== ADMIN_UID) {
+
+   if (
+      data.ban &&
+      data.ban.status === true &&
+      typeof data.ban.expire === "number" &&
+      Date.now() < data.ban.expire
+   ) {
+      alert("Bạn đã vi phạm chính sách.");
+      await signOut(auth);
+      return;
+   }
+
 }
 
 document.getElementById("auth").style.display="none";
