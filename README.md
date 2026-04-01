@@ -1,2 +1,2 @@
-# VietnamAI Cloud Online Corporation 🇻🇳
+# VietnamAI Corporation 🇻🇳
 VietnamAI Corporation 
