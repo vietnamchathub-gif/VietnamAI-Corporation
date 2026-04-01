@@ -1,2 +1,2 @@
-# Vietnam On Top [BẢN CHÍNH THỨC]
-# Developer/Management: Vietnam Chat Hub 
+# VietnamAI Cloud Online Corporation 🇻🇳
+VietnamAI Corporation 
